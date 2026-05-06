@@ -1,0 +1,38 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / web UI
+node_modules/
+src/finance/web/dist/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Local data (the app's runtime dir lives at ~/.finance, outside the repo,
+# but pin a sensible default for any in-tree dev override).
+.finance-local/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Local secrets — should never be committed
+.env
+.env.local
+
+wise_statement_example.pdf
+feedback.txt

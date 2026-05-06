@@ -1,0 +1,215 @@
+/* Mobile-first layout. Nav collapses ≤ 480px; tables turn into card lists.
+   Tap targets are sized to ≥ 44px in both axes. */
+
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+button {
+  min-height: 44px;
+  padding: 0 1em;
+  border-radius: 6px;
+  border: 1px solid #888;
+  background: #f5f5f5;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input, select {
+  min-height: 44px;
+  padding: 0 0.5em;
+  border: 1px solid #888;
+  border-radius: 6px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  margin-bottom: 0.5em;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th, td {
+  text-align: left;
+  padding: 0.5em;
+  border-bottom: 1px solid #ddd;
+}
+
+.app {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.75em 1em;
+  border-bottom: 1px solid #ccc;
+}
+.topbar h1 {
+  font-size: 1.25rem;
+  margin: 0;
+  flex: 1;
+}
+.logout {
+  background: transparent;
+}
+.navtoggle {
+  display: none;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+}
+
+.nav {
+  display: flex;
+  gap: 0.25em;
+  padding: 0.5em 1em;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+}
+.navbtn {
+  background: transparent;
+  border: 1px solid transparent;
+}
+.navbtn.active {
+  background: #ddd;
+  border-color: #888;
+}
+
+.content {
+  padding: 1em;
+  max-width: 1024px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.error {
+  color: #b00;
+  background: #fee;
+  padding: 0.5em;
+  border-radius: 6px;
+  margin: 0.5em 0;
+}
+
+.filters {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  align-items: end;
+  margin-bottom: 1em;
+}
+
+.newform {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75em;
+  align-items: end;
+  padding: 1em;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1em;
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5em;
+}
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.75em;
+}
+.card .card-row {
+  display: flex;
+  justify-content: space-between;
+}
+.card .actions {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.5em;
+}
+
+.batch {
+  margin-bottom: 1.5em;
+}
+.batch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-block {
+  margin-bottom: 1em;
+}
+
+/* Key-entry screen */
+.key-entry {
+  max-width: 420px;
+  margin: 4em auto;
+  padding: 1.5em;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+}
+.key-entry input {
+  width: 100%;
+}
+.hint {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Show tables on desktop, cards on mobile. */
+.mobile-only { display: none; }
+
+@media (max-width: 480px) {
+  .navtoggle { display: inline-flex; }
+  .nav {
+    display: none;
+    flex-direction: column;
+  }
+  .nav.open { display: flex; }
+  .hide-on-mobile { display: none; }
+  .mobile-only { display: grid; }
+}

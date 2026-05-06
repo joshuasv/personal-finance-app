@@ -1,0 +1,3 @@
+"""finance — local-first personal finance app."""
+
+__version__ = "0.1.0"

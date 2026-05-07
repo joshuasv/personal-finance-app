@@ -11,7 +11,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy.orm import sessionmaker
 from telegram import (
@@ -55,7 +55,7 @@ class BotDeps:
 
 
 def get_deps(context: ContextTypes.DEFAULT_TYPE) -> BotDeps:
-    return context.bot_data[CTX_KEY]
+    return cast(BotDeps, context.bot_data[CTX_KEY])
 
 
 def is_allowed(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -246,7 +246,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await query.answer()
     data = query.data or ""
     deps = get_deps(context)
-    state = context.user_data.get(USER_STATE_KEY) if context.user_data else None  # type: ignore[union-attr]
+    state = context.user_data.get(USER_STATE_KEY) if context.user_data else None
     if state is None:
         await query.edit_message_text(
             "I don't have an in-flight upload — please send the PDF again."

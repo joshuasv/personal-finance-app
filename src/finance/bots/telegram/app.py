@@ -9,6 +9,7 @@ the very first PDF upload doesn't race-create it.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from sqlalchemy.orm import sessionmaker
 from telegram.ext import (
@@ -45,8 +46,8 @@ def build_application(
     settings: Settings,
     *,
     registry: OperationRegistry | None = None,
-    session_maker: sessionmaker | None = None,
-) -> Application:
+    session_maker: sessionmaker[Any] | None = None,
+) -> Application[Any, Any, Any, Any, Any, Any]:
     """Assemble the Application with all handlers registered.
 
     Raises `EmptyAllowListError` if `telegram.allow_list` is empty.

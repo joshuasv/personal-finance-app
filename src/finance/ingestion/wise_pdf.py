@@ -56,7 +56,7 @@ def _parse_minor(text: str, decimals: int = 2) -> int:
     else:
         major, frac = body, ""
     frac = (frac + "0" * decimals)[:decimals]
-    return sign * (int(major) * 10**decimals + int(frac))
+    return int(sign * (int(major) * 10**decimals + int(frac)))
 
 
 class WiseStatementAdapter:

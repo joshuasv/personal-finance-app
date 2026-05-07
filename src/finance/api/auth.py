@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hmac
+from collections.abc import Awaitable, Callable
 
 from fastapi import Header, HTTPException, status
 
@@ -35,7 +36,7 @@ def _extract_bearer(authorization: str | None) -> str | None:
     return token or None
 
 
-def make_require_api_key(settings: Settings):
+def make_require_api_key(settings: Settings) -> Callable[..., Awaitable[None]]:
     """Build a FastAPI dependency that enforces the API key on the given settings.
 
     The dependency raises 401 with body `{"detail": "..."}` on missing/invalid

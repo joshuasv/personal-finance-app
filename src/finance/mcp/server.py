@@ -22,7 +22,7 @@ from finance.core.config import Settings
 from finance.core.operations import Operation, OperationRegistry
 
 
-def _make_tool(op: Operation, session_maker: sessionmaker[Session]):
+def _make_tool(op: Operation, session_maker: sessionmaker[Session]) -> Callable[..., Any]:
     """Build a tool function whose annotations match the operation's IO models."""
     InputModel = op.input_model
     OutputModel = op.output_model

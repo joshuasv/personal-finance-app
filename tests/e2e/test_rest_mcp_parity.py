@@ -33,9 +33,7 @@ def parity_settings(db_path: Path) -> Settings:
     )
 
 
-def test_rest_and_mcp_share_callables(
-    parity_settings: Settings, engine: Engine
-) -> None:
+def test_rest_and_mcp_share_callables(parity_settings: Settings, engine: Engine) -> None:
     sm = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     registry = build_default_registry()
     app = create_app(parity_settings, registry=registry, session_maker=sm)
@@ -84,9 +82,7 @@ def test_rest_and_mcp_share_callables(
     assert "Salary" in payees, payees
 
 
-def test_registry_names_match_across_surfaces(
-    parity_settings: Settings, engine: Engine
-) -> None:
+def test_registry_names_match_across_surfaces(parity_settings: Settings, engine: Engine) -> None:
     sm = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     registry = build_default_registry()
     app = create_app(parity_settings, registry=registry, session_maker=sm)
@@ -94,7 +90,7 @@ def test_registry_names_match_across_surfaces(
     server = build_server(registry, parity_settings, sm)
 
     rest_paths = {
-        p[len("/api/"):]
+        p[len("/api/") :]
         for p in client.get("/openapi.json").json()["paths"]
         if p.startswith("/api/")
     }

@@ -77,14 +77,10 @@ def _archive_account(session: Session, payload: ArchiveAccountIn) -> ArchiveAcco
 
 def _list_accounts(session: Session, payload: ListAccountsIn) -> ListAccountsOut:
     accounts = list_accounts(session, include_archived=payload.include_archived)
-    return ListAccountsOut(
-        accounts=[AccountOut.model_validate(a) for a in accounts]
-    )
+    return ListAccountsOut(accounts=[AccountOut.model_validate(a) for a in accounts])
 
 
-def _record_transaction(
-    session: Session, payload: RecordTransactionIn
-) -> RecordTransactionOut:
+def _record_transaction(session: Session, payload: RecordTransactionIn) -> RecordTransactionOut:
     tx = record_transaction(
         session,
         account_id=payload.account_id,
@@ -98,9 +94,7 @@ def _record_transaction(
     return RecordTransactionOut(transaction=TransactionOut.model_validate(tx))
 
 
-def _update_transaction(
-    session: Session, payload: UpdateTransactionIn
-) -> UpdateTransactionOut:
+def _update_transaction(session: Session, payload: UpdateTransactionIn) -> UpdateTransactionOut:
     tx = update_transaction(
         session,
         transaction_id=payload.transaction_id,
@@ -112,30 +106,22 @@ def _update_transaction(
     return UpdateTransactionOut(transaction=TransactionOut.model_validate(tx))
 
 
-def _delete_transaction(
-    session: Session, payload: DeleteTransactionIn
-) -> DeleteTransactionOut:
+def _delete_transaction(session: Session, payload: DeleteTransactionIn) -> DeleteTransactionOut:
     delete_transaction(session, transaction_id=payload.transaction_id)
     return DeleteTransactionOut()
 
 
-def _list_transactions(
-    session: Session, payload: ListTransactionsIn
-) -> ListTransactionsOut:
+def _list_transactions(session: Session, payload: ListTransactionsIn) -> ListTransactionsOut:
     rows = list_transactions(
         session,
         account_id=payload.account_id,
         start=payload.start,
         end=payload.end,
     )
-    return ListTransactionsOut(
-        transactions=[TransactionOut.model_validate(t) for t in rows]
-    )
+    return ListTransactionsOut(transactions=[TransactionOut.model_validate(t) for t in rows])
 
 
-def _account_balance(
-    session: Session, payload: AccountBalanceIn
-) -> AccountBalanceOut:
+def _account_balance(session: Session, payload: AccountBalanceIn) -> AccountBalanceOut:
     money = account_balance(session, account_id=payload.account_id)
     return AccountBalanceOut(
         account_id=payload.account_id,
@@ -163,9 +149,7 @@ def _list_adapters(session: Session, payload: ListAdaptersIn) -> ListAdaptersOut
     return ListAdaptersOut(adapters=adapters)
 
 
-def _import_artifact(
-    session: Session, payload: ImportArtifactIn
-) -> ImportArtifactOut:
+def _import_artifact(session: Session, payload: ImportArtifactIn) -> ImportArtifactOut:
     from finance.ingestion import build_default_adapter_registry
     from finance.ingestion.pipeline import import_artifact
 
@@ -237,9 +221,7 @@ def _block_to_out(block: object) -> IncomeExpenseBlockOut:
     )
 
 
-def _monthly_summary(
-    session: Session, payload: MonthlySummaryIn
-) -> MonthlySummaryOut:
+def _monthly_summary(session: Session, payload: MonthlySummaryIn) -> MonthlySummaryOut:
     from finance.reporting.queries import monthly_summary
 
     summary = monthly_summary(session, year=payload.year, month=payload.month)

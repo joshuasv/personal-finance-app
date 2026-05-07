@@ -23,7 +23,6 @@ from finance.core.services.errors import (
     ValidationError,
 )
 from finance.core.services.transactions import compute_content_hash
-from finance.ingestion.protocols import AdapterParseError
 from finance.ingestion.registry import AdapterRegistry
 
 
@@ -88,9 +87,7 @@ def import_artifact(
     """
     if not registry.has(adapter_id):
         known = ", ".join(a.id for a in registry.list_adapters()) or "(none)"
-        raise AdapterNotFoundError(
-            f"unknown adapter {adapter_id!r}; known adapters: {known}"
-        )
+        raise AdapterNotFoundError(f"unknown adapter {adapter_id!r}; known adapters: {known}")
     adapter = registry.get_adapter(adapter_id)
 
     account = AccountRepository(session).get(account_id)
@@ -108,11 +105,7 @@ def import_artifact(
     sha256, size_bytes = _hash_file(artifact_path)
 
     if not force:
-        prior = (
-            session.query(IngestionBatch)
-            .filter(IngestionBatch.source_sha256 == sha256)
-            .first()
-        )
+        prior = session.query(IngestionBatch).filter(IngestionBatch.source_sha256 == sha256).first()
         if prior is not None:
             raise DuplicateBatchError(prior)
 

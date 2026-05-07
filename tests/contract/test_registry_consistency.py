@@ -74,14 +74,14 @@ def _compare_schemas(rest: dict[str, Any], mcp: dict[str, Any], op_name: str) ->
     """
     rest_props = rest.get("properties", {}) or {}
     mcp_props = mcp.get("properties", {}) or {}
-    assert (
-        rest_props.keys() == mcp_props.keys()
-    ), f"property name mismatch on {op_name}: REST={set(rest_props)} MCP={set(mcp_props)}"
+    assert rest_props.keys() == mcp_props.keys(), (
+        f"property name mismatch on {op_name}: REST={set(rest_props)} MCP={set(mcp_props)}"
+    )
     rest_required = set(rest.get("required", []) or [])
     mcp_required = set(mcp.get("required", []) or [])
-    assert (
-        rest_required == mcp_required
-    ), f"required-field mismatch on {op_name}: REST={rest_required} MCP={mcp_required}"
+    assert rest_required == mcp_required, (
+        f"required-field mismatch on {op_name}: REST={rest_required} MCP={mcp_required}"
+    )
     for key in rest_props:
         r = _normalize(rest_props[key])
         m = _normalize(mcp_props[key])
@@ -106,12 +106,10 @@ def test_every_operation_is_on_both_surfaces(
     mcp_tools = server._tool_manager._tools  # type: ignore[attr-defined]
 
     for op in registry.all():
-        assert (
-            f"/api/{op.name}" in rest_paths
-        ), f"operation {op.name!r} is registered but not exposed on REST"
-        assert (
-            op.name in mcp_tools
-        ), f"operation {op.name!r} is registered but not exposed on MCP"
+        assert f"/api/{op.name}" in rest_paths, (
+            f"operation {op.name!r} is registered but not exposed on REST"
+        )
+        assert op.name in mcp_tools, f"operation {op.name!r} is registered but not exposed on MCP"
 
 
 def test_input_schemas_match_for_every_operation(
@@ -146,10 +144,7 @@ def test_output_schemas_match_for_every_operation(
         # The REST OpenAPI references the output schema via a $ref in the
         # 200-response content. Resolve it to the concrete schema.
         path = openapi["paths"][f"/api/{op.name}"]
-        ok_schema = (
-            path["post"]["responses"]["200"]["content"]
-            ["application/json"]["schema"]
-        )
+        ok_schema = path["post"]["responses"]["200"]["content"]["application/json"]["schema"]
         ref = ok_schema.get("$ref")
         if ref:
             name = ref.rsplit("/", 1)[-1]

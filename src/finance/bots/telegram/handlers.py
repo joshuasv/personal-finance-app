@@ -114,8 +114,7 @@ async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text("No accounts.")
         return
     lines = [
-        f"{row.name}: {Money(row.balance_minor, row.currency).format()}"
-        for row in out.accounts
+        f"{row.name}: {Money(row.balance_minor, row.currency).format()}" for row in out.accounts
     ]
     await update.message.reply_text("\n".join(lines))
 
@@ -149,9 +148,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     deps = get_deps(context)
     out = _run_op(deps, "monthly_summary", {"year": year, "month": month})
     if not out.blocks:
-        await update.message.reply_text(
-            f"No transactions in {year:04d}-{month:02d}."
-        )
+        await update.message.reply_text(f"No transactions in {year:04d}-{month:02d}.")
         return
 
     lines = [f"Summary for {year:04d}-{month:02d}"]
@@ -161,8 +158,7 @@ async def summary_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         net = Money(block.net_savings_minor, block.currency).format()
         rate = "—" if block.savings_rate is None else f"{block.savings_rate}%"
         lines.append(
-            f"{block.currency}: income {income}, expense {expense}, "
-            f"net {net}, savings rate {rate}"
+            f"{block.currency}: income {income}, expense {expense}, net {net}, savings rate {rate}"
         )
     await update.message.reply_text("\n".join(lines))
 
@@ -258,7 +254,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return
 
     if data.startswith(ADAPTER_PREFIX):
-        adapter_id = data[len(ADAPTER_PREFIX):]
+        adapter_id = data[len(ADAPTER_PREFIX) :]
         state["adapter_id"] = adapter_id
         accounts = _run_op(deps, "list_accounts", {"include_archived": False})
         keyboard = InlineKeyboardMarkup(
@@ -280,7 +276,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if data.startswith(ACCOUNT_PREFIX):
         try:
-            account_id = int(data[len(ACCOUNT_PREFIX):])
+            account_id = int(data[len(ACCOUNT_PREFIX) :])
         except ValueError:
             await query.edit_message_text("error: malformed account selection")
             return
@@ -288,9 +284,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         adapter_id = state.get("adapter_id")
         path = state.get("path")
         if adapter_id is None or path is None:
-            await query.edit_message_text(
-                "Adapter not selected; please re-send the PDF."
-            )
+            await query.edit_message_text("Adapter not selected; please re-send the PDF.")
             return
         try:
             result = _run_op(
@@ -302,16 +296,13 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                     "account_id": account_id,
                 },
             )
-        except Exception as exc:  # noqa: BLE001 — surface concise error
-            await query.edit_message_text(
-                f"Import failed via {adapter_id}: {exc}"
-            )
+        except Exception as exc:
+            await query.edit_message_text(f"Import failed via {adapter_id}: {exc}")
             context.user_data.pop(USER_STATE_KEY, None)  # type: ignore[union-attr]
             return
         context.user_data.pop(USER_STATE_KEY, None)  # type: ignore[union-attr]
         await query.edit_message_text(
-            f"Batch #{result.batch_id}: created {result.draft_count} drafts. "
-            "Use /drafts to review."
+            f"Batch #{result.batch_id}: created {result.draft_count} drafts. Use /drafts to review."
         )
         return
 
@@ -323,10 +314,10 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 __all__ = [
     "ACCOUNT_PREFIX",
     "ADAPTER_PREFIX",
-    "BotDeps",
     "CTX_KEY",
     "HELP_TEXT",
     "USER_STATE_KEY",
+    "BotDeps",
     "balance_command",
     "callback_handler",
     "document_handler",

@@ -46,9 +46,7 @@ class Account(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
-    opening_balance_minor: Mapped[int] = mapped_column(
-        BigInteger, nullable=False, default=0
-    )
+    opening_balance_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     archived: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=_utc_now
@@ -102,9 +100,7 @@ class Transaction(Base):
     account: Mapped[Account] = relationship(back_populates="transactions")
 
     __table_args__ = (
-        UniqueConstraint(
-            "account_id", "content_hash", name="uq_transactions_account_hash"
-        ),
+        UniqueConstraint("account_id", "content_hash", name="uq_transactions_account_hash"),
     )
 
 
@@ -167,8 +163,4 @@ class DraftTransaction(Base):
     batch: Mapped[IngestionBatch] = relationship(back_populates="drafts")
     account: Mapped[Account] = relationship()
 
-    __table_args__ = (
-        UniqueConstraint(
-            "batch_id", "content_hash", name="uq_drafts_batch_hash"
-        ),
-    )
+    __table_args__ = (UniqueConstraint("batch_id", "content_hash", name="uq_drafts_batch_hash"),)

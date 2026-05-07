@@ -11,7 +11,6 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from finance.api.app import create_app
-from finance.core import db as core_db
 from finance.core.config import ApiSettings, DatabaseSettings, Settings
 from finance.core.logging import configure_logging
 from finance.core.operations import build_default_registry
@@ -31,12 +30,8 @@ def api_settings(db_path: Path) -> Settings:
 
 
 @pytest.fixture
-def client(
-    api_settings: Settings, engine: Engine
-) -> TestClient:
-    session_maker = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, future=True
-    )
+def client(api_settings: Settings, engine: Engine) -> TestClient:
+    session_maker = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     app = create_app(
         api_settings,
         registry=build_default_registry(),

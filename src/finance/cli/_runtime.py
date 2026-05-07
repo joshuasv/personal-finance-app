@@ -43,7 +43,7 @@ def run_operation(op: Operation, payload_dict: dict[str, Any], settings: Setting
     """
     try:
         payload = op.input_model(**payload_dict)
-    except Exception as exc:  # noqa: BLE001 — Pydantic raises a typed error
+    except Exception as exc:
         typer.echo(f"error: invalid input — {exc}", err=True)
         raise typer.Exit(code=2) from exc
 
@@ -67,10 +67,7 @@ def render_table(rows: list[dict[str, Any]], columns: list[str]) -> str:
     widths = {c: max(len(c), max(len(str(r.get(c, ""))) for r in rows)) for c in columns}
     header = "  ".join(c.ljust(widths[c]) for c in columns)
     sep = "  ".join("-" * widths[c] for c in columns)
-    body = "\n".join(
-        "  ".join(str(r.get(c, "")).ljust(widths[c]) for c in columns)
-        for r in rows
-    )
+    body = "\n".join("  ".join(str(r.get(c, "")).ljust(widths[c]) for c in columns) for r in rows)
     return f"{header}\n{sep}\n{body}"
 
 

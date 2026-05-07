@@ -15,9 +15,9 @@ from finance.core.services import (
 
 
 @given(
-    opening=st.integers(min_value=-10**9, max_value=10**9),
+    opening=st.integers(min_value=-(10**9), max_value=10**9),
     amounts=st.lists(
-        st.integers(min_value=-10**8, max_value=10**8).filter(lambda x: x != 0),
+        st.integers(min_value=-(10**8), max_value=10**8).filter(lambda x: x != 0),
         min_size=0,
         max_size=30,
         unique=True,

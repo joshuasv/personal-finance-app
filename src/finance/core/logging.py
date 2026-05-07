@@ -22,9 +22,7 @@ class SecretRedactingFilter(logging.Filter):
 
     def __init__(self, secrets: Iterable[str]) -> None:
         super().__init__()
-        self._patterns: list[re.Pattern[str]] = [
-            re.compile(re.escape(s)) for s in secrets if s
-        ]
+        self._patterns: list[re.Pattern[str]] = [re.compile(re.escape(s)) for s in secrets if s]
 
     def add_secret(self, secret: str) -> None:
         if not secret:
@@ -59,9 +57,7 @@ def configure_logging(settings: Settings) -> SecretRedactingFilter:
     redactor = SecretRedactingFilter(secrets)
 
     handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
-    )
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
     handler.addFilter(redactor)
 
     root = logging.getLogger()
@@ -78,9 +74,7 @@ def safe_describe_settings(settings: Settings) -> dict[str, Any]:
         "api_host": settings.api.host,
         "api_port": settings.api.port,
         "api_key": redact(settings.api.key) if settings.api.key else None,
-        "telegram_token": (
-            redact(settings.telegram.token) if settings.telegram.token else None
-        ),
+        "telegram_token": (redact(settings.telegram.token) if settings.telegram.token else None),
         "telegram_allow_list_count": len(settings.telegram.allow_list),
         "log_level": settings.log.level,
     }

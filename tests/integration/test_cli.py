@@ -8,10 +8,10 @@ and the SQLite DB are sandboxed per test.
 from __future__ import annotations
 
 import shutil
+import tomllib
 from pathlib import Path
 
 import pytest
-import tomllib
 from typer.testing import CliRunner
 
 from finance.cli.app import app
@@ -64,9 +64,7 @@ def test_init_is_idempotent(runner: CliRunner, finance_home: Path) -> None:
     assert "already initialized" in second.output
 
 
-def test_config_set_and_get_non_secret(
-    runner: CliRunner, finance_home: Path
-) -> None:
+def test_config_set_and_get_non_secret(runner: CliRunner, finance_home: Path) -> None:
     custom = finance_home / "custom.db"
     set_result = runner.invoke(app, ["config", "set", "db.path", str(custom)])
     assert set_result.exit_code == 0, set_result.output
@@ -75,9 +73,7 @@ def test_config_set_and_get_non_secret(
     assert str(custom) in get_result.output
 
 
-def test_config_set_secret_redacts_on_get(
-    runner: CliRunner, finance_home: Path
-) -> None:
+def test_config_set_secret_redacts_on_get(runner: CliRunner, finance_home: Path) -> None:
     secret = "sk_live_abcdef0123456789"
     set_result = runner.invoke(app, ["config", "set", "api.key", secret])
     assert set_result.exit_code == 0
@@ -88,9 +84,7 @@ def test_config_set_secret_redacts_on_get(
     assert "chars)" in get_result.output  # length indicator from `redact`
 
 
-def test_config_file_has_0600_permissions(
-    runner: CliRunner, finance_home: Path
-) -> None:
+def test_config_file_has_0600_permissions(runner: CliRunner, finance_home: Path) -> None:
     set_result = runner.invoke(app, ["config", "set", "api.key", "anything"])
     assert set_result.exit_code == 0
     cfg = finance_home / "config.toml"
@@ -99,9 +93,7 @@ def test_config_file_has_0600_permissions(
     assert mode == 0o600, oct(mode)
 
 
-def test_config_set_telegram_allow_list_is_intlist(
-    runner: CliRunner, finance_home: Path
-) -> None:
+def test_config_set_telegram_allow_list_is_intlist(runner: CliRunner, finance_home: Path) -> None:
     result = runner.invoke(app, ["config", "set", "telegram.allow_list", "12345,67890"])
     assert result.exit_code == 0
     cfg = finance_home / "config.toml"
@@ -117,9 +109,7 @@ def test_config_set_unknown_key_fails(runner: CliRunner, finance_home: Path) -> 
 
 
 def test_account_create_and_list(runner: CliRunner, initialized: Path) -> None:
-    create = runner.invoke(
-        app, ["account", "create", "--name", "Wise GBP", "--currency", "GBP"]
-    )
+    create = runner.invoke(app, ["account", "create", "--name", "Wise GBP", "--currency", "GBP"])
     assert create.exit_code == 0, create.output
     assert "Wise GBP" in create.output
 
@@ -128,9 +118,7 @@ def test_account_create_and_list(runner: CliRunner, initialized: Path) -> None:
     assert "Wise GBP" in listed.output
 
 
-def test_account_create_duplicate_returns_error(
-    runner: CliRunner, initialized: Path
-) -> None:
+def test_account_create_duplicate_returns_error(runner: CliRunner, initialized: Path) -> None:
     args = ["account", "create", "--name", "Wise GBP", "--currency", "GBP"]
     first = runner.invoke(app, args)
     assert first.exit_code == 0
@@ -152,9 +140,7 @@ def test_account_archive(runner: CliRunner, initialized: Path) -> None:
 
 
 def test_transaction_add_and_list(runner: CliRunner, initialized: Path) -> None:
-    runner.invoke(
-        app, ["account", "create", "--name", "Wise GBP", "--currency", "GBP"]
-    )
+    runner.invoke(app, ["account", "create", "--name", "Wise GBP", "--currency", "GBP"])
     listed = runner.invoke(app, ["account", "list", "--json"])
     import json as _json
 
@@ -213,9 +199,7 @@ def test_import_wise_pdf_creates_drafts(
     runner.invoke(app, ["account", "create", "--name", "Wise EUR", "--currency", "EUR"])
     work = tmp_path / "april.pdf"
     shutil.copy(fixture, work)
-    result = runner.invoke(
-        app, ["import", "wise-pdf", str(work), "--account", "Wise EUR"]
-    )
+    result = runner.invoke(app, ["import", "wise-pdf", str(work), "--account", "Wise EUR"])
     assert result.exit_code == 0, result.output
     assert "draft(s) created" in result.output
 
@@ -244,12 +228,8 @@ def test_draft_list_pending_and_confirm_flow(
     assert "confirmed draft" in confirmed.output
 
 
-def test_report_monthly_table_and_json(
-    runner: CliRunner, initialized: Path
-) -> None:
-    runner.invoke(
-        app, ["account", "create", "--name", "Wise GBP", "--currency", "GBP"]
-    )
+def test_report_monthly_table_and_json(runner: CliRunner, initialized: Path) -> None:
+    runner.invoke(app, ["account", "create", "--name", "Wise GBP", "--currency", "GBP"])
     listed = runner.invoke(app, ["account", "list", "--json"])
     import json as _json
 
@@ -257,23 +237,35 @@ def test_report_monthly_table_and_json(
     runner.invoke(
         app,
         [
-            "transaction", "add",
-            "--account-id", str(account_id),
-            "--date", "2026-05-01",
-            "--amount", "-1250",
-            "--currency", "GBP",
-            "--payee", "Tesco",
+            "transaction",
+            "add",
+            "--account-id",
+            str(account_id),
+            "--date",
+            "2026-05-01",
+            "--amount",
+            "-1250",
+            "--currency",
+            "GBP",
+            "--payee",
+            "Tesco",
         ],
     )
     runner.invoke(
         app,
         [
-            "transaction", "add",
-            "--account-id", str(account_id),
-            "--date", "2026-05-15",
-            "--amount", "300000",
-            "--currency", "GBP",
-            "--payee", "Salary",
+            "transaction",
+            "add",
+            "--account-id",
+            str(account_id),
+            "--date",
+            "2026-05-15",
+            "--amount",
+            "300000",
+            "--currency",
+            "GBP",
+            "--payee",
+            "Salary",
         ],
     )
 
@@ -290,16 +282,12 @@ def test_report_monthly_table_and_json(
     assert any(b["currency"] == "GBP" for b in blocks)
 
 
-def test_report_monthly_invalid_month(
-    runner: CliRunner, initialized: Path
-) -> None:
+def test_report_monthly_invalid_month(runner: CliRunner, initialized: Path) -> None:
     result = runner.invoke(app, ["report", "monthly", "2026-13"])
     assert result.exit_code != 0
 
 
-def test_bot_refuses_with_empty_allow_list(
-    runner: CliRunner, finance_home: Path
-) -> None:
+def test_bot_refuses_with_empty_allow_list(runner: CliRunner, finance_home: Path) -> None:
     """`finance bot` must fail-closed when telegram.allow_list is empty."""
     runner.invoke(app, ["config", "set", "telegram.token", "fake-token"])
     result = runner.invoke(app, ["bot"])
@@ -307,9 +295,7 @@ def test_bot_refuses_with_empty_allow_list(
     assert "allow_list" in result.output
 
 
-def test_serve_refuses_without_api_key(
-    runner: CliRunner, finance_home: Path
-) -> None:
+def test_serve_refuses_without_api_key(runner: CliRunner, finance_home: Path) -> None:
     result = runner.invoke(app, ["serve"])
     assert result.exit_code != 0
     assert "api.key" in result.output

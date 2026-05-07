@@ -70,9 +70,7 @@ class Money:
         body = amount_str.lstrip("+-")
         if d == 0:
             if "." in body:
-                raise ValueError(
-                    f"{currency} has no decimal places; got {amount_str!r}"
-                )
+                raise ValueError(f"{currency} has no decimal places; got {amount_str!r}")
             return cls(sign * int(body), currency)
         if "." not in body:
             major_part, minor_part = body, "0" * d

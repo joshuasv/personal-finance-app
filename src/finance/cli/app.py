@@ -97,10 +97,7 @@ def _set_nested(d: dict[str, Any], key: str, value: Any) -> None:
 def _coerce(key: str, raw: str) -> Any:
     kind = _KNOWN_KEYS.get(key)
     if kind is None:
-        fail(
-            f"unknown config key {key!r}; known keys: "
-            f"{', '.join(sorted(_KNOWN_KEYS))}"
-        )
+        fail(f"unknown config key {key!r}; known keys: {', '.join(sorted(_KNOWN_KEYS))}")
     if kind == "int":
         try:
             return int(raw)
@@ -112,10 +109,7 @@ def _coerce(key: str, raw: str) -> Any:
         try:
             return [int(p.strip()) for p in raw.split(",") if p.strip()]
         except ValueError:
-            fail(
-                f"value for {key} must be a comma-separated list of integers; "
-                f"got {raw!r}"
-            )
+            fail(f"value for {key} must be a comma-separated list of integers; got {raw!r}")
     return raw
 
 
@@ -146,8 +140,7 @@ def account_create(
     )
     a = out.account
     typer.echo(
-        f"created account #{a.id}: {a.name} ({a.currency}, "
-        f"opening {a.opening_balance_minor} minor)"
+        f"created account #{a.id}: {a.name} ({a.currency}, opening {a.opening_balance_minor} minor)"
     )
 
 
@@ -220,8 +213,7 @@ def transaction_add(
     )
     t = out.transaction
     typer.echo(
-        f"recorded transaction #{t.id}: {t.posted_date} {t.payee} "
-        f"{t.amount_minor} {t.currency}"
+        f"recorded transaction #{t.id}: {t.posted_date} {t.payee} {t.amount_minor} {t.currency}"
     )
 
 
@@ -277,9 +269,7 @@ def _resolve_account_id(account: str) -> int:
 def import_cmd(
     adapter_id: str = typer.Argument(..., help="Adapter id, e.g. 'wise-pdf'."),
     path: Path = typer.Argument(..., help="Path to the source artifact (PDF)."),
-    account: str = typer.Option(
-        ..., "--account", help="Target account name or numeric id."
-    ),
+    account: str = typer.Option(..., "--account", help="Target account name or numeric id."),
     force: bool = typer.Option(
         False,
         "--force",
@@ -366,9 +356,7 @@ def draft_confirm(
     registry = get_registry()
     op = registry.get("confirm_draft")
     out = run_operation(op, {"draft_id": draft_id}, load_settings())
-    typer.echo(
-        f"confirmed draft #{out.draft_id} → transaction #{out.transaction.id}"
-    )
+    typer.echo(f"confirmed draft #{out.draft_id} → transaction #{out.transaction.id}")
 
 
 @draft_app.command("reject")
@@ -471,10 +459,7 @@ def config_set(
 ) -> None:
     """Set a config value in ~/.finance/config.toml (mode 0600)."""
     if key not in _KNOWN_KEYS:
-        fail(
-            f"unknown config key {key!r}; known keys: "
-            f"{', '.join(sorted(_KNOWN_KEYS))}"
-        )
+        fail(f"unknown config key {key!r}; known keys: {', '.join(sorted(_KNOWN_KEYS))}")
     coerced = _coerce(key, value)
     config_path = paths.config_path()
     data = read_toml(config_path)
@@ -498,13 +483,10 @@ def init_cmd() -> None:
     result = core_db.init_db(settings)
     typer.echo(f"db: {result['db_path']}")
     if result["migrations_applied"]:
-        typer.echo(
-            f"migrated {result['previous_revision']} → {result['current_revision']}"
-        )
+        typer.echo(f"migrated {result['previous_revision']} → {result['current_revision']}")
     else:
         typer.echo(
-            f"already initialized (revision {result['current_revision']}); "
-            "no migrations applied"
+            f"already initialized (revision {result['current_revision']}); no migrations applied"
         )
 
 
@@ -564,8 +546,7 @@ def bot_cmd() -> None:
         )
     if settings.telegram.token is None or settings.telegram.token == "":
         fail(
-            "telegram.token is not set; run "
-            "'finance config set telegram.token <value>' first",
+            "telegram.token is not set; run 'finance config set telegram.token <value>' first",
             code=2,
         )
 

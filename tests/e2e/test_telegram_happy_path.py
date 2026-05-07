@@ -47,12 +47,7 @@ def _make_context(deps: h.BotDeps) -> MagicMock:
 async def test_telegram_pdf_to_summary(
     db_path: Path, engine: Engine, finance_home: Path, db_session
 ) -> None:
-    fixture = (
-        Path(__file__).resolve().parents[1]
-        / "fixtures"
-        / "wise"
-        / "april_2026.pdf"
-    )
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "wise" / "april_2026.pdf"
     if not fixture.is_file():
         pytest.skip("wise fixture PDF not present")
 

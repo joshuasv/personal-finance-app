@@ -52,9 +52,7 @@ def build_application(
     Raises `EmptyAllowListError` if `telegram.allow_list` is empty.
     """
     if settings.telegram.token is None or settings.telegram.token == "":
-        raise RuntimeError(
-            "telegram.token is not set; cannot build the bot Application"
-        )
+        raise RuntimeError("telegram.token is not set; cannot build the bot Application")
 
     # Ensure logging redaction is in place before any handler runs.
     configure_logging(settings)

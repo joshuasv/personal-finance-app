@@ -15,7 +15,7 @@
 - [x] 2.3 Use `astral-sh/setup-uv` and cache `~/.cache/uv` and the Node `node_modules` directory keyed on lockfiles
 - [x] 2.4 Add a `pr-title` job using `amannn/action-semantic-pull-request` to enforce Conventional Commits on PR titles; runs only on `pull_request` events
 - [x] 2.5 Upload coverage report as a CI artifact (no gating yet — see §5)
-- [ ] 2.6 Confirm CI is green on a throwaway PR before configuring branch protection *(blocked: requires GitHub remote — see §4)*
+- [x] 2.6 Confirm CI is green on a throwaway PR before configuring branch protection *(verified directly on `main` push — run 25521496227 green: lint, typecheck, test, web-build, secrets all pass; pr-title skipped on push as designed. CI also surfaced 9 latent mypy errors in non-core code which are now fixed in commit 1eab91c)*
 
 ## 3. Repository workflow & docs
 
@@ -28,8 +28,8 @@
 
 - [x] 4.1 Push the repository to GitHub (creates the remote); confirm the workflow file in §2 runs on the first push *(remote `origin` set to `git@github.com:joshuasv/personal-finance-app.git`; `main` pushed. CI run on first policy push is verified as part of 2.6 below)*
 - [x] 4.2 Create the `dev` branch from `main` and push it *(local `dev` and `origin/dev` both exist and are aligned with `main` at `fe01899`)*
-- [ ] 4.3 Configure branch protection on `main`: require PR, require 1 approving review, require all status checks listed in §2 to pass, require branches to be up-to-date before merging, disallow force-push, disallow deletion, disallow direct push. Allow merge commits and disable squash/rebase merging for this branch (the merge-commit-from-`dev` strategy preserves batch boundaries)
-- [ ] 4.4 Configure branch protection on `dev`: require PR, require all status checks listed in §2 to pass, disallow force-push, disallow deletion, disallow direct push. **Do not** require approving reviews (this is the rule that lets agents auto-merge). Allow squash-merge and disable merge-commit/rebase-merge for this branch (one feature = one commit on `dev`)
+- [x] 4.3 Configure branch protection on `main`: require PR, require 1 approving review, require all status checks listed in §2 to pass, require branches to be up-to-date before merging, disallow force-push, disallow deletion, disallow direct push. Allow merge commits and disable squash/rebase merging for this branch (the merge-commit-from-`dev` strategy preserves batch boundaries) *(applied via `gh api PUT branches/main/protection`; merge-method preference is repo-level not per-branch in classic protection — convention enforced via AGENTS.md)*
+- [x] 4.4 Configure branch protection on `dev`: require PR, require all status checks listed in §2 to pass, disallow force-push, disallow deletion, disallow direct push. **Do not** require approving reviews (this is the rule that lets agents auto-merge). Allow squash-merge and disable merge-commit/rebase-merge for this branch (one feature = one commit on `dev`) *(applied via `gh api PUT branches/dev/protection` with `required_pull_request_reviews: null`)*
 - [ ] 4.5 Confirm via a throwaway PR that `feat/*` → `dev` can be merged by the PR author once CI is green, and that `dev` → `main` requires an explicit approval
 
 ## 5. Coverage policy (placeholder, no gate yet)

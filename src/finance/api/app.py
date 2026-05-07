@@ -6,6 +6,8 @@ the MCP server (see `finance.mcp`); everything in `/api/*` is single-source.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import FastAPI
 from sqlalchemy.orm import sessionmaker
 
@@ -20,7 +22,7 @@ def create_app(
     settings: Settings | None = None,
     *,
     registry: OperationRegistry | None = None,
-    session_maker: sessionmaker | None = None,
+    session_maker: sessionmaker[Any] | None = None,
     mount_mcp: bool = True,
 ) -> FastAPI:
     """Build a FastAPI app wired to the operation registry.

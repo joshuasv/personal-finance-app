@@ -260,7 +260,7 @@ def _resolve_account_id(account: str) -> int:
     out = run_operation(op, {"include_archived": False}, load_settings())
     for a in out.accounts:
         if a.name == account:
-            return a.id
+            return int(a.id)
     fail(f"no active account named {account!r}")
     return 0  # unreachable; fail() raises
 

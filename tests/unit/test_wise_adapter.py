@@ -53,15 +53,15 @@ def test_parse_signs_minor_units_correctly() -> None:
     # The first card transaction in the fixture is "Card transaction of 6.55
     # EUR issued by Netto Marken-Discount Berlin" → -655 EUR minor.
     netto = next(
-        t for t in parsed
+        t
+        for t in parsed
         if "Netto" in t.payee and t.amount_minor == -655 and t.posted_date.day == 30
     )
     assert netto.currency == "EUR"
 
     # The salary line is "Received money from SKD SE with reference LOHN..."
     salary = next(
-        t for t in parsed
-        if "SKD SE" in t.payee and "LOHN" in t.payee and t.amount_minor > 0
+        t for t in parsed if "SKD SE" in t.payee and "LOHN" in t.payee and t.amount_minor > 0
     )
     assert salary.amount_minor == 397193
     del by_payee  # only used for type-flow analysis above

@@ -38,9 +38,7 @@ def _normalize_name(name: str) -> str:
 def _normalize_currency(currency: str) -> str:
     code = currency.strip().upper()
     if not is_valid_iso_currency(code):
-        raise ValidationError(
-            f"currency must be a 3-letter ISO 4217 code, got {currency!r}"
-        )
+        raise ValidationError(f"currency must be a 3-letter ISO 4217 code, got {currency!r}")
     return code
 
 
@@ -57,9 +55,7 @@ def create_account(
 
     repo = AccountRepository(session)
     if repo.get_by_active_name(name) is not None:
-        raise DuplicateAccountNameError(
-            f"an active account named {name!r} already exists"
-        )
+        raise DuplicateAccountNameError(f"an active account named {name!r} already exists")
     return repo.add(
         name=name,
         currency=iso_currency,
@@ -79,14 +75,10 @@ def archive_account(session: Session, *, account_id: int) -> Account:
         select(Transaction.id).where(Transaction.account_id == account_id).limit(1)
     )
     if has_tx is not None:
-        raise AccountInUseError(
-            f"account {account.name!r} has transactions and cannot be archived"
-        )
+        raise AccountInUseError(f"account {account.name!r} has transactions and cannot be archived")
     return repo.archive(account)
 
 
-def list_accounts(
-    session: Session, *, include_archived: bool = False
-) -> Sequence[Account]:
+def list_accounts(session: Session, *, include_archived: bool = False) -> Sequence[Account]:
     repo = AccountRepository(session)
     return repo.list_all() if include_archived else repo.list_active()

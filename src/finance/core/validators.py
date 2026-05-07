@@ -31,9 +31,7 @@ def _reject_float_minor(v: object) -> object:
 def _ensure_iso_currency(v: str) -> str:
     code = v.upper()
     if not is_valid_iso_currency(code):
-        raise ValueError(
-            f"currency must be a 3-letter ISO 4217 code, got {v!r}"
-        )
+        raise ValueError(f"currency must be a 3-letter ISO 4217 code, got {v!r}")
     return code
 
 

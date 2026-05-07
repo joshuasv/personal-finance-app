@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.engine import Engine
@@ -65,21 +64,17 @@ def test_mcp_tool_input_schema_matches_registry(
         mcp_payload = _resolve_mcp_input_schema(tool.parameters, op.input_model.__name__)
         # The dereferenced MCP payload schema has the same property names and
         # the same required-field set as the REST input model schema.
-        assert mcp_payload.get("properties", {}).keys() == rest_schema.get(
-            "properties", {}
-        ).keys(), f"property mismatch on {op.name}"
+        assert (
+            mcp_payload.get("properties", {}).keys() == rest_schema.get("properties", {}).keys()
+        ), f"property mismatch on {op.name}"
         assert set(mcp_payload.get("required", []) or []) == set(
             rest_schema.get("required", []) or []
         ), f"required-field mismatch on {op.name}"
 
 
-def test_mcp_route_blocks_unauthenticated(
-    mcp_settings: Settings, engine: Engine
-) -> None:
+def test_mcp_route_blocks_unauthenticated(mcp_settings: Settings, engine: Engine) -> None:
     """Hit /mcp without auth — should get 401 from the middleware."""
-    session_maker = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, future=True
-    )
+    session_maker = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     app = create_app(
         mcp_settings,
         registry=build_default_registry(),
@@ -94,9 +89,7 @@ def test_mcp_route_blocks_unauthenticated(
 def test_mcp_route_accepts_with_key(mcp_settings: Settings, engine: Engine) -> None:
     """With a valid key the /mcp endpoint is reachable (it'll respond with
     a protocol-specific status, which is enough to prove auth passed)."""
-    session_maker = sessionmaker(
-        bind=engine, autoflush=False, autocommit=False, future=True
-    )
+    session_maker = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
     app = create_app(
         mcp_settings,
         registry=build_default_registry(),

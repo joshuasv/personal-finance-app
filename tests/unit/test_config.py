@@ -49,9 +49,7 @@ def test_file_overrides_defaults(finance_home: Path) -> None:
     assert s.log.level == "DEBUG"
 
 
-def test_env_overrides_file(
-    finance_home: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_env_overrides_file(finance_home: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     _write_config(
         finance_home,
         """

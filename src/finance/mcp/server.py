@@ -11,7 +11,7 @@ requires the same `Authorization: Bearer <api-key>` header as REST.
 from __future__ import annotations
 
 import hmac
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP

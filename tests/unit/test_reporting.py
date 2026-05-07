@@ -15,7 +15,6 @@ from finance.reporting.queries import (
     monthly_summary,
 )
 
-
 pytestmark = pytest.mark.integration
 
 
@@ -40,9 +39,7 @@ def _add_tx(
 
 def test_empty_month_returns_zeros(db_session: Session) -> None:
     create_account(db_session, name="Wise GBP", currency="GBP")
-    block = income_expense_for_month(
-        db_session, year=2026, month=5, currency="GBP"
-    )
+    block = income_expense_for_month(db_session, year=2026, month=5, currency="GBP")
     assert block.income_minor == 0
     assert block.expense_minor == 0
     assert block.net_savings_minor == 0
@@ -53,16 +50,22 @@ def test_empty_month_returns_zeros(db_session: Session) -> None:
 def test_mixed_inflows_and_outflows_compute_savings_rate(db_session: Session) -> None:
     a = create_account(db_session, name="Wise GBP", currency="GBP")
     _add_tx(
-        db_session, account_id=a.id, posted=date(2026, 5, 5),
-        amount_minor=300000, currency="GBP", payee="Salary",
+        db_session,
+        account_id=a.id,
+        posted=date(2026, 5, 5),
+        amount_minor=300000,
+        currency="GBP",
+        payee="Salary",
     )
     _add_tx(
-        db_session, account_id=a.id, posted=date(2026, 5, 10),
-        amount_minor=-180000, currency="GBP", payee="Groceries",
+        db_session,
+        account_id=a.id,
+        posted=date(2026, 5, 10),
+        amount_minor=-180000,
+        currency="GBP",
+        payee="Groceries",
     )
-    block = income_expense_for_month(
-        db_session, year=2026, month=5, currency="GBP"
-    )
+    block = income_expense_for_month(db_session, year=2026, month=5, currency="GBP")
     assert block.income_minor == 300000
     assert block.expense_minor == 180000
     assert block.net_savings_minor == 120000
@@ -73,12 +76,14 @@ def test_mixed_inflows_and_outflows_compute_savings_rate(db_session: Session) ->
 def test_savings_rate_null_on_zero_income(db_session: Session) -> None:
     a = create_account(db_session, name="Wise GBP", currency="GBP")
     _add_tx(
-        db_session, account_id=a.id, posted=date(2026, 5, 5),
-        amount_minor=-1000, currency="GBP", payee="Groceries",
+        db_session,
+        account_id=a.id,
+        posted=date(2026, 5, 5),
+        amount_minor=-1000,
+        currency="GBP",
+        payee="Groceries",
     )
-    block = income_expense_for_month(
-        db_session, year=2026, month=5, currency="GBP"
-    )
+    block = income_expense_for_month(db_session, year=2026, month=5, currency="GBP")
     assert block.income_minor == 0
     assert block.expense_minor == 1000
     assert block.net_savings_minor == -1000
@@ -88,8 +93,12 @@ def test_savings_rate_null_on_zero_income(db_session: Session) -> None:
 def test_drafts_excluded_from_summary(db_session: Session) -> None:
     a = create_account(db_session, name="Wise GBP", currency="GBP")
     _add_tx(
-        db_session, account_id=a.id, posted=date(2026, 5, 5),
-        amount_minor=100000, currency="GBP", payee="Salary",
+        db_session,
+        account_id=a.id,
+        posted=date(2026, 5, 5),
+        amount_minor=100000,
+        currency="GBP",
+        payee="Salary",
     )
     # Insert a pending draft directly: it must not affect the summary.
     batch = IngestionBatch(
@@ -116,9 +125,7 @@ def test_drafts_excluded_from_summary(db_session: Session) -> None:
         )
     )
     db_session.flush()
-    block = income_expense_for_month(
-        db_session, year=2026, month=5, currency="GBP"
-    )
+    block = income_expense_for_month(db_session, year=2026, month=5, currency="GBP")
     assert block.income_minor == 100000
     assert block.transaction_count == 1
 
@@ -126,12 +133,14 @@ def test_drafts_excluded_from_summary(db_session: Session) -> None:
 def test_calendar_month_boundary_inclusive(db_session: Session) -> None:
     a = create_account(db_session, name="Wise GBP", currency="GBP")
     _add_tx(
-        db_session, account_id=a.id, posted=date(2026, 5, 31),
-        amount_minor=-500, currency="GBP", payee="LastDay",
+        db_session,
+        account_id=a.id,
+        posted=date(2026, 5, 31),
+        amount_minor=-500,
+        currency="GBP",
+        payee="LastDay",
     )
-    block = income_expense_for_month(
-        db_session, year=2026, month=5, currency="GBP"
-    )
+    block = income_expense_for_month(db_session, year=2026, month=5, currency="GBP")
     assert block.transaction_count == 1
     assert block.expense_minor == 500
 
@@ -140,16 +149,28 @@ def test_monthly_summary_per_currency(db_session: Session) -> None:
     gbp = create_account(db_session, name="Wise GBP", currency="GBP")
     eur = create_account(db_session, name="Wise EUR", currency="EUR")
     _add_tx(
-        db_session, account_id=gbp.id, posted=date(2026, 5, 1),
-        amount_minor=200000, currency="GBP", payee="Salary",
+        db_session,
+        account_id=gbp.id,
+        posted=date(2026, 5, 1),
+        amount_minor=200000,
+        currency="GBP",
+        payee="Salary",
     )
     _add_tx(
-        db_session, account_id=gbp.id, posted=date(2026, 5, 2),
-        amount_minor=-50000, currency="GBP", payee="Rent",
+        db_session,
+        account_id=gbp.id,
+        posted=date(2026, 5, 2),
+        amount_minor=-50000,
+        currency="GBP",
+        payee="Rent",
     )
     _add_tx(
-        db_session, account_id=eur.id, posted=date(2026, 5, 5),
-        amount_minor=-12345, currency="EUR", payee="Groceries",
+        db_session,
+        account_id=eur.id,
+        posted=date(2026, 5, 5),
+        amount_minor=-12345,
+        currency="EUR",
+        payee="Groceries",
     )
 
     summary = monthly_summary(db_session, year=2026, month=5)
@@ -174,19 +195,23 @@ def test_monthly_summary_empty_month_no_blocks(db_session: Session) -> None:
 
 
 def test_account_balance_snapshot(db_session: Session) -> None:
-    gbp = create_account(
-        db_session, name="Wise GBP", currency="GBP", opening_balance_minor=10000
-    )
-    eur = create_account(
-        db_session, name="Wise EUR", currency="EUR", opening_balance_minor=0
+    gbp = create_account(db_session, name="Wise GBP", currency="GBP", opening_balance_minor=10000)
+    eur = create_account(db_session, name="Wise EUR", currency="EUR", opening_balance_minor=0)
+    _add_tx(
+        db_session,
+        account_id=gbp.id,
+        posted=date(2026, 5, 1),
+        amount_minor=15000,
+        currency="GBP",
+        payee="Salary",
     )
     _add_tx(
-        db_session, account_id=gbp.id, posted=date(2026, 5, 1),
-        amount_minor=15000, currency="GBP", payee="Salary",
-    )
-    _add_tx(
-        db_session, account_id=eur.id, posted=date(2026, 5, 2),
-        amount_minor=40000, currency="EUR", payee="Refund",
+        db_session,
+        account_id=eur.id,
+        posted=date(2026, 5, 2),
+        amount_minor=40000,
+        currency="EUR",
+        payee="Refund",
     )
     snapshot = account_balance_snapshot(db_session)
     by_name = {row.name: row for row in snapshot}

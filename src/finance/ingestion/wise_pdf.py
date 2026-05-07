@@ -34,13 +34,9 @@ _MONTHS = {
 _MONTH_ALT = "|".join(_MONTHS)
 
 # A line ending with "<amount> <balance>" — both decimals, amount may be signed.
-_AMOUNT_BALANCE_RE = re.compile(
-    r"\s(?P<amount>-?[\d,]+\.\d+)\s+(?P<balance>-?[\d,]+\.\d+)\s*$"
-)
+_AMOUNT_BALANCE_RE = re.compile(r"\s(?P<amount>-?[\d,]+\.\d+)\s+(?P<balance>-?[\d,]+\.\d+)\s*$")
 # Date line, e.g. "April 30, 2026 Card ending in 8273 ..."
-_DATE_LINE_RE = re.compile(
-    rf"^(?P<month>{_MONTH_ALT})\s+(?P<day>\d{{1,2}}),\s+(?P<year>\d{{4}})\b"
-)
+_DATE_LINE_RE = re.compile(rf"^(?P<month>{_MONTH_ALT})\s+(?P<day>\d{{1,2}}),\s+(?P<year>\d{{4}})\b")
 # Currency declaration in the header: "EUR statement" / "GBP statement"
 _CURRENCY_HEADER_RE = re.compile(r"(?m)^([A-Z]{3})\s+statement\b")
 # Page footer: "ref:<uuid>  <n> / <total>"
@@ -124,9 +120,7 @@ class WiseStatementAdapter:
                 block = []
         return results
 
-    def _make_tx(
-        self, block: list[tuple[int, str]], currency: str
-    ) -> ParsedTransaction:
+    def _make_tx(self, block: list[tuple[int, str]], currency: str) -> ParsedTransaction:
         first_pno, first = block[0]
         m_amt = _AMOUNT_BALANCE_RE.search(first)
         if m_amt is None:

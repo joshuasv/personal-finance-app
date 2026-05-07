@@ -38,9 +38,7 @@ def confirm_draft(session: Session, *, draft_id: int) -> Transaction:
     """
     draft = _resolve_draft(session, draft_id)
     if draft.status is not DraftStatus.pending:
-        raise DraftNotPendingError(
-            f"draft {draft_id} is {draft.status.value}, not pending"
-        )
+        raise DraftNotPendingError(f"draft {draft_id} is {draft.status.value}, not pending")
 
     repo = TransactionRepository(session)
     clash = repo.find_by_account_and_hash(draft.account_id, draft.content_hash)
@@ -70,9 +68,7 @@ def reject_draft(session: Session, *, draft_id: int) -> DraftTransaction:
     """Mark a pending draft as rejected. No transaction is created."""
     draft = _resolve_draft(session, draft_id)
     if draft.status is not DraftStatus.pending:
-        raise DraftNotPendingError(
-            f"draft {draft_id} is {draft.status.value}, not pending"
-        )
+        raise DraftNotPendingError(f"draft {draft_id} is {draft.status.value}, not pending")
     draft.status = DraftStatus.rejected
     session.flush()
     return draft

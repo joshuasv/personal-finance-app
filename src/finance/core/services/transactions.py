@@ -109,8 +109,7 @@ def record_transaction(
     repo = TransactionRepository(session)
     if repo.find_by_account_and_hash(account_id, content_hash) is not None:
         raise DuplicateTransactionError(
-            "a transaction with the same date/amount/payee already exists "
-            "for this account"
+            "a transaction with the same date/amount/payee already exists for this account"
         )
     return repo.add(
         account_id=account_id,
@@ -163,8 +162,7 @@ def update_transaction(
         clash = repo.find_by_account_and_hash(tx.account_id, new_hash)
         if clash is not None and clash.id != tx.id:
             raise DuplicateTransactionError(
-                "another transaction on this account has the same "
-                "date/amount/payee"
+                "another transaction on this account has the same date/amount/payee"
             )
 
     tx.posted_date = new_date
@@ -192,6 +190,4 @@ def list_transactions(
     end: date | None = None,
 ) -> Sequence[Transaction]:
     _resolve_account(session, account_id)
-    return TransactionRepository(session).list_for_account(
-        account_id, start=start, end=end
-    )
+    return TransactionRepository(session).list_for_account(account_id, start=start, end=end)

@@ -48,9 +48,7 @@ class TransactionRepository:
         self._s.delete(tx)
         self._s.flush()
 
-    def find_by_account_and_hash(
-        self, account_id: int, content_hash: str
-    ) -> Transaction | None:
+    def find_by_account_and_hash(self, account_id: int, content_hash: str) -> Transaction | None:
         stmt = select(Transaction).where(
             Transaction.account_id == account_id,
             Transaction.content_hash == content_hash,

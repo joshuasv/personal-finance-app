@@ -199,9 +199,7 @@ def test_duplicate_batch_allowed_with_force(
     assert second.source_sha256 == first.source_sha256
 
 
-def test_parser_failure_surfaces_adapter_id(
-    db_session: Session, tmp_path: Path
-) -> None:
+def test_parser_failure_surfaces_adapter_id(db_session: Session, tmp_path: Path) -> None:
     not_pdf = tmp_path / "not-a-pdf.txt"
     not_pdf.write_text("This is not a PDF.")
     adapter = WiseStatementAdapter()
@@ -210,9 +208,7 @@ def test_parser_failure_surfaces_adapter_id(
     assert "wise-pdf" in str(exc_info.value)
 
 
-def test_parser_failure_on_non_wise_pdf(
-    db_session: Session, tmp_path: Path
-) -> None:
+def test_parser_failure_on_non_wise_pdf(db_session: Session, tmp_path: Path) -> None:
     """A real PDF that isn't a Wise statement should fail with a clear error."""
     fake = tmp_path / "not_wise.pdf"
     # Minimal valid PDF (single page, "Hello world", no Wise header).

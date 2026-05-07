@@ -222,9 +222,7 @@ def test_update_transaction_collision_rejected(db_session: Session) -> None:
         payee="B",
     )
     with pytest.raises(DuplicateTransactionError):
-        update_transaction(
-            db_session, transaction_id=other.id, amount_minor=-1000, payee="A"
-        )
+        update_transaction(db_session, transaction_id=other.id, amount_minor=-1000, payee="A")
 
 
 def test_delete_transaction(db_session: Session) -> None:

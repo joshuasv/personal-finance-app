@@ -125,9 +125,7 @@ def account_balance_snapshot(session: Session) -> list[AccountBalance]:
     return out
 
 
-def _currencies_present_in_month(
-    session: Session, *, year: int, month: int
-) -> list[str]:
+def _currencies_present_in_month(session: Session, *, year: int, month: int) -> list[str]:
     start, end = _month_bounds(year, month)
     rows = session.execute(
         select(Transaction.currency)
@@ -139,9 +137,7 @@ def _currencies_present_in_month(
     return [r[0] for r in rows]
 
 
-def monthly_summary(
-    session: Session, *, year: int, month: int
-) -> MonthlySummary:
+def monthly_summary(session: Session, *, year: int, month: int) -> MonthlySummary:
     """Calendar-month summary, one block per currency present that month.
 
     Returns at least one (empty) block in the user's first-account currency
@@ -151,14 +147,8 @@ def monthly_summary(
     start, end = _month_bounds(year, month)
     blocks: list[IncomeExpenseSummary] = []
     for currency in _currencies_present_in_month(session, year=year, month=month):
-        blocks.append(
-            income_expense_for_month(
-                session, year=year, month=month, currency=currency
-            )
-        )
-    return MonthlySummary(
-        year=year, month=month, start=start, end=end, blocks=blocks
-    )
+        blocks.append(income_expense_for_month(session, year=year, month=month, currency=currency))
+    return MonthlySummary(year=year, month=month, start=start, end=end, blocks=blocks)
 
 
 __all__ = [

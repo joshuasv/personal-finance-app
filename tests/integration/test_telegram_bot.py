@@ -8,7 +8,6 @@ the inbox-saving + adapter/account picker + import_artifact flow end-to-end.
 from __future__ import annotations
 
 import logging
-import shutil
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -52,9 +51,7 @@ def bot_session_maker(engine: Engine) -> sessionmaker:
 
 
 @pytest.fixture
-def deps(
-    bot_settings: Settings, bot_session_maker: sessionmaker
-) -> h.BotDeps:
+def deps(bot_settings: Settings, bot_session_maker: sessionmaker) -> h.BotDeps:
     return h.BotDeps(
         settings=bot_settings,
         registry=build_default_registry(),
@@ -122,15 +119,12 @@ async def test_start_aliases_help(deps: h.BotDeps) -> None:
 # --- Slash command behavior --------------------------------------------------
 
 
-async def test_balance_lists_per_account(
-    deps: h.BotDeps, db_session
-) -> None:
-    from finance.core.services import create_account, record_transaction
+async def test_balance_lists_per_account(deps: h.BotDeps, db_session) -> None:
     from datetime import date
 
-    a = create_account(
-        db_session, name="Wise GBP", currency="GBP", opening_balance_minor=1000
-    )
+    from finance.core.services import create_account, record_transaction
+
+    a = create_account(db_session, name="Wise GBP", currency="GBP", opening_balance_minor=1000)
     db_session.flush()
     record_transaction(
         db_session,
@@ -180,9 +174,7 @@ async def test_summary_default_month(deps: h.BotDeps, db_session, monkeypatch) -
     assert "GBP" in body
 
 
-async def test_summary_with_explicit_month(
-    deps: h.BotDeps, db_session
-) -> None:
+async def test_summary_with_explicit_month(deps: h.BotDeps, db_session) -> None:
     update = _make_update()
     context = _make_context(deps, args=["2026-04"])
     await h.summary_command(update, context)
@@ -209,12 +201,7 @@ async def test_document_handler_pdf_saves_and_prompts(
     create_account(db_session, name="Wise EUR", currency="EUR")
     db_session.commit()
 
-    fixture = (
-        Path(__file__).resolve().parents[1]
-        / "fixtures"
-        / "wise"
-        / "april_2026.pdf"
-    )
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "wise" / "april_2026.pdf"
     if not fixture.is_file():
         pytest.skip("wise fixture PDF not present")
     pdf_bytes = fixture.read_bytes()
@@ -246,9 +233,7 @@ async def test_document_handler_pdf_saves_and_prompts(
     assert state["path"] == str(pdfs[0])
 
 
-async def test_document_handler_non_pdf_declines(
-    deps: h.BotDeps, db_session
-) -> None:
+async def test_document_handler_non_pdf_declines(deps: h.BotDeps, db_session) -> None:
     update = _make_update()
     update.message.document = MagicMock(
         mime_type="text/csv",
@@ -262,9 +247,7 @@ async def test_document_handler_non_pdf_declines(
     assert "csv" in body.lower() or "v1" in body
 
 
-async def test_document_handler_idempotent_save(
-    deps: h.BotDeps, finance_home: Path
-) -> None:
+async def test_document_handler_idempotent_save(deps: h.BotDeps, finance_home: Path) -> None:
     """Two saves of identical bytes should not duplicate the inbox file."""
     sample = b"%PDF-1.4\n" + b"A" * 256
     a1 = save_pdf_bytes(sample)
@@ -279,21 +262,14 @@ async def test_document_handler_idempotent_save(
 # --- Callback flow (adapter + account picker) -------------------------------
 
 
-async def test_callback_flow_runs_import(
-    deps: h.BotDeps, db_session
-) -> None:
+async def test_callback_flow_runs_import(deps: h.BotDeps, db_session) -> None:
     """Picking adapter then account triggers `import_artifact`."""
     from finance.core.services import create_account
 
     account = create_account(db_session, name="Wise EUR", currency="EUR")
     db_session.commit()
 
-    fixture = (
-        Path(__file__).resolve().parents[1]
-        / "fixtures"
-        / "wise"
-        / "april_2026.pdf"
-    )
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "wise" / "april_2026.pdf"
     if not fixture.is_file():
         pytest.skip("wise fixture PDF not present")
 

@@ -20,12 +20,7 @@ pytestmark = [pytest.mark.e2e, pytest.mark.integration]
 def test_full_cli_happy_path(
     runner_for_test: CliRunner, finance_home: Path, tmp_path: Path
 ) -> None:
-    fixture = (
-        Path(__file__).resolve().parents[1]
-        / "fixtures"
-        / "wise"
-        / "april_2026.pdf"
-    )
+    fixture = Path(__file__).resolve().parents[1] / "fixtures" / "wise" / "april_2026.pdf"
     if not fixture.is_file():
         pytest.skip("wise fixture PDF not present")
 
@@ -36,17 +31,13 @@ def test_full_cli_happy_path(
     assert init.exit_code == 0, init.output
 
     # 2. create account
-    create = runner.invoke(
-        app, ["account", "create", "--name", "Wise EUR", "--currency", "EUR"]
-    )
+    create = runner.invoke(app, ["account", "create", "--name", "Wise EUR", "--currency", "EUR"])
     assert create.exit_code == 0, create.output
 
     # 3. import the Wise PDF
     work = tmp_path / "april.pdf"
     shutil.copy(fixture, work)
-    imp = runner.invoke(
-        app, ["import", "wise-pdf", str(work), "--account", "Wise EUR"]
-    )
+    imp = runner.invoke(app, ["import", "wise-pdf", str(work), "--account", "Wise EUR"])
     assert imp.exit_code == 0, imp.output
     assert "draft(s) created" in imp.output
 

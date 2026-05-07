@@ -52,5 +52,4 @@ class InstitutionAdapter(Protocol):
     display_name: str
     source_artifact_type: str
 
-    def parse(self, path: Path) -> Iterable[ParsedTransaction]:
-        ...
+    def parse(self, path: Path) -> Iterable[ParsedTransaction]: ...

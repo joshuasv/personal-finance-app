@@ -1,10 +1,11 @@
-.PHONY: help sync fmt lint typecheck test test-cov run-api run-bot run-web build-web clean
+.PHONY: help sync hooks fmt lint typecheck test test-cov run-api run-bot run-web build-web clean
 
 PY := uv run
 
 help:
 	@echo "Targets:"
 	@echo "  sync       Install/refresh deps via uv"
+	@echo "  hooks      Install pre-commit hooks (run once after a fresh clone)"
 	@echo "  fmt        Format with ruff"
 	@echo "  lint       Lint with ruff"
 	@echo "  typecheck  Type-check with mypy"
@@ -17,6 +18,9 @@ help:
 
 sync:
 	uv sync --all-groups
+
+hooks:
+	$(PY) pre-commit install --install-hooks
 
 fmt:
 	$(PY) ruff format src tests

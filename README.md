@@ -13,9 +13,23 @@ report, or a new chat surface does not require touching `core/`.
 
 ```bash
 make sync                        # install Python deps via uv
+make hooks                       # install pre-commit hooks (first time only)
 make test                        # run the full test suite
 uv run finance --help            # browse the CLI
 ```
+
+## Development workflow
+
+This repo follows a Gitflow-lite branch model (`main` ◀ `dev` ◀ `feat/*`)
+with auto-merge to `dev` for green PRs and human-gated promotion to
+`main`. All commits and PR titles must follow Conventional Commits, and
+local pre-commit hooks (ruff, gitleaks, commitizen) enforce formatting,
+lint, secret scanning, and message format on every commit.
+
+The full policy — branch model, merge strategies, agent worktree
+workflow, CI gates, and the "tests as review artifact" principle — lives
+in [`AGENTS.md`](./AGENTS.md). New contributors (human or LLM) should
+read it once before starting their first change.
 
 ## Setup
 

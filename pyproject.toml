@@ -38,7 +38,15 @@ dev = [
     "pytest-cov>=6.0",
     "respx>=0.21",
     "hypothesis>=6.115",
+    "pre-commit>=4.0",
+    "commitizen>=4.0",
 ]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_provider = "pep621"
+tag_format = "v$version"
+update_changelog_on_bump = false
 
 [tool.ruff]
 line-length = 100
@@ -62,6 +70,9 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["B011"]
+# Typer/Click idiom: `typer.Argument(...)` and `typer.Option(...)` are
+# expected as parameter defaults. B008 is a false positive in this style.
+"src/finance/cli/app.py" = ["B008"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -88,3 +99,45 @@ markers = [
     "contract: REST/MCP registry contract tests",
     "e2e: end-to-end happy-path tests",
 ]
+
+[tool.coverage.run]
+branch = true
+source = ["finance"]
+# Auto-generated Alembic scaffolding is not meaningfully testable; exclude it
+# so it doesn't drag the per-module floor down.
+omit = [
+    "src/finance/core/migrations/env.py",
+    "src/finance/core/migrations/versions/*.py",
+]
+
+[tool.coverage.report]
+# v1 policy: coverage is collected on every CI run but NOT gated.
+# Set fail_under = 0 so CI never fails on threshold; the report is uploaded
+# as an artifact for visibility (see .github/workflows/ci.yml).
+fail_under = 0
+show_missing = true
+skip_covered = false
+
+# Per-module floors (PLACEHOLDERS — not yet enforced).
+#
+# Mirroring the mypy strictness gradient: strict in `finance.core.*`, lax
+# elsewhere. Numbers below are deliberately permissive starting points,
+# chosen so current measured coverage passes them with cushion. Today's
+# measurements (2026-05-07): overall 88%, finance.core.* ~95% (excluding
+# auto-generated migrations).
+#
+# RATCHET TRIGGER (do not edit lightly):
+#   The first change after `dev-lifecycle-policy` that adds meaningful new
+#   tests for a module SHALL set that module's floor to its post-change
+#   measured coverage and SHALL convert the floor from a placeholder
+#   comment into an enforced threshold (e.g., by adopting a per-module
+#   coverage gate tool or a custom CI step). Floors only ratchet upward.
+#
+# Placeholders:
+#   finance.core.*                       80%
+#   finance.ingestion.*                   0%
+#   finance.reporting.*                   0%
+#   finance.api.*                         0%
+#   finance.mcp.*                         0%
+#   finance.cli.*                         0%
+#   finance.bots.*                        0%

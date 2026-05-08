@@ -36,7 +36,6 @@ from finance.bots.telegram.handlers import (
 from finance.bots.telegram.inbox import inbox_dir
 from finance.core.config import Settings
 from finance.core.db import engine_for, session_factory_for
-from finance.core.logging import configure_logging
 from finance.core.operations import OperationRegistry, build_default_registry
 
 logger = logging.getLogger(__name__)
@@ -55,8 +54,6 @@ def build_application(
     if settings.telegram.token is None or settings.telegram.token == "":
         raise RuntimeError("telegram.token is not set; cannot build the bot Application")
 
-    # Ensure logging redaction is in place before any handler runs.
-    configure_logging(settings)
     allow_list = AllowList(settings.telegram.allow_list)
 
     # Pre-create the inbox so the first upload doesn't race the mkdir.

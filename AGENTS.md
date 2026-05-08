@@ -134,6 +134,18 @@ adds meaningful new tests for a module SHALL set that module's floor to
 its post-change measured coverage and convert the placeholder into an
 enforced threshold. Floors only ratchet upward.
 
+## Manual smoke checks
+
+A small number of surfaces cannot be exercised meaningfully in CI (they
+require real third-party credentials and network egress). For those,
+each change that touches the surface MUST be followed by the documented
+manual smoke check before opening the `dev → main` promotion PR.
+
+- After any change touching `src/finance/bots/telegram/` or
+  `src/finance/cli/app.py::bot_cmd`, run the Level-3 smoke check from
+  `openspec/changes/fix-telegram-bot-silent-failures/tasks.md` (§5)
+  against your own bot token and chat id before promoting `dev → main`.
+
 ## What this file does NOT cover
 
 - Code style beyond what ruff enforces (no per-file style rules).

@@ -40,6 +40,11 @@ dev = [
     "hypothesis>=6.115",
     "pre-commit>=4.0",
     "commitizen>=4.0",
+    # Real-Telegram E2E: a user-account MTProto client that drives the bot
+    # end-to-end. Tests using it are gated by the `e2e_telegram` pytest marker
+    # and skipped unless the relevant env vars are set, so CI stays green
+    # without the secrets.
+    "telethon>=1.36",
 ]
 
 [tool.commitizen]
@@ -98,6 +103,7 @@ markers = [
     "integration: integration tests that hit a real (temp) SQLite DB",
     "contract: REST/MCP registry contract tests",
     "e2e: end-to-end happy-path tests",
+    "e2e_telegram: real-Telegram E2E (Telethon user client → real bot). Skipped unless TELEGRAM_API_ID/HASH/SESSION_STRING + FINANCE_E2E_BOT_TOKEN/CHAT_ID are set.",
 ]
 
 [tool.coverage.run]

@@ -551,7 +551,9 @@ def bot_cmd() -> None:
         )
 
     from finance.bots.telegram.app import build_application
+    from finance.core.logging import configure_logging
 
+    configure_logging(settings)
     application = build_application(settings)
     application.run_polling(stop_signals=None)
 

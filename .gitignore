@@ -33,6 +33,7 @@ src/finance/web/dist/
 # Local secrets — should never be committed
 .env
 .env.local
+.telegram-test-secrets.toml
 
 wise_statement_example.pdf
 feedback.txt

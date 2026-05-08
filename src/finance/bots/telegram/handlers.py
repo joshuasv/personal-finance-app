@@ -44,6 +44,16 @@ HELP_TEXT = (
 )
 
 
+def _looks_like_pdf(mime_type: str | None, file_name: str | None) -> bool:
+    """Telegram occasionally classifies PDFs as `application/octet-stream`
+    (notably for files forwarded from third-party clients or sent from iOS).
+    Accept those when the file_name carries the `.pdf` extension."""
+    mt = (mime_type or "").lower()
+    if mt == "application/pdf":
+        return True
+    return mt == "application/octet-stream" and (file_name or "").lower().endswith(".pdf")
+
+
 @dataclass(frozen=True, slots=True)
 class BotDeps:
     """Per-application dependencies (settings, ops, db). Stored on `bot_data`."""
@@ -195,7 +205,7 @@ async def document_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     doc = msg.document
     assert doc is not None
 
-    if (doc.mime_type or "").lower() != "application/pdf":
+    if not _looks_like_pdf(doc.mime_type, doc.file_name):
         await msg.reply_text(
             "v1 only accepts PDF statements. Use the CLI or web UI for other formats."
         )

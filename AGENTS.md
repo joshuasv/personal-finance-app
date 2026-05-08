@@ -154,13 +154,23 @@ manual smoke check before opening the `dev → main` promotion PR.
 - The list of v1 non-goals — see the bootstrap proposal at
   `openspec/changes/bootstrap-finance-app/proposal.md` and `README.md`.
 
+## OpenSpec change lifecycle
+
+The implementation PR ships **with** its archive and live-spec sync — not after. This matters because:
+
+- The live `openspec/specs/*` files always reflect what `main` actually does. There is never a window where the implementation has shipped but the live specs still describe the previous state.
+- The reviewer reads the spec deltas in the same context as the test changes — "tests are the review artifact" works better when the spec, the tests, and the code are one PR.
+- One promotion cycle per change instead of two. The "I forgot to archive after the dev → main merge" failure mode disappears.
+
+So the agent SHALL run `/opsx:archive` on the feat branch **before** opening the PR, and the resulting archived directory + synced live specs go into the same commit as the implementation. Date-naming the archive when the PR opens (rather than when it lands on `main`) is acceptable — for our cadence the date is approximately right, and even a 1–2 day drift is harmless.
+
 ## Quick reference: starting a new change
 
 ```
 1. /opsx:propose <short-description>      # or /opsx:explore to think first
 2. (Claude creates proposal/design/specs/tasks)
 3. /opsx:apply <change-name>              # implements tasks
-4. Open PR feat/<slug> → dev              # CI gates merge
-5. (later) Open PR dev → main             # human approval gates merge
-6. /opsx:archive <change-name>            # after the dev → main merge ships
+4. /opsx:archive <change-name>            # moves change → archive/, syncs live specs
+5. Open PR feat/<slug> → dev              # CI gates merge; review reads spec+tests+code together
+6. (later) Open PR dev → main             # human approval gates merge; archive ships in same batch
 ```

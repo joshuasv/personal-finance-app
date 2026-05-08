@@ -62,6 +62,11 @@ read it once before starting their first change.
 
 ## Running the surfaces
 
+Each surface below is its own independent process — start only the ones
+you need, in their own terminal. `finance serve` (REST/MCP) and `finance
+bot` (Telegram poller) do not start each other; if you want both at once,
+run both.
+
 | Surface       | Command                                | Notes                                                                    |
 |---------------|----------------------------------------|--------------------------------------------------------------------------|
 | REST + MCP    | `uv run finance serve`                 | FastAPI on `127.0.0.1:8000`; MCP transport mounted at `/mcp`.            |
@@ -76,11 +81,17 @@ read it once before starting their first change.
 2. `uv run finance config set api.key <strong random>`; (optional)
    `uv run finance config set telegram.token …` and
    `uv run finance config set telegram.allow_list <your chat id>`.
-3. `uv run finance serve` (and, in another terminal,
-   `npm --prefix src/finance/web run dev`).
+3. Start the surfaces you'll use, each in its own terminal — they're
+   independent processes:
+   - REST/MCP API: `uv run finance serve`
+   - Web UI (dev): `npm --prefix src/finance/web run dev`
+   - Telegram bot: `uv run finance bot` *(required if you'll send a PDF
+     from your Telegram client in step 5; without it, the bot is silent
+     because no poller is running)*
 4. Open the web UI at <http://localhost:5173>, paste the API key, create an
    account (e.g., "Wise EUR" / EUR).
-5. **Import a PDF**: send a Wise statement to your bot (Telegram), or run
+5. **Import a PDF**: send a Wise statement to your bot in Telegram (needs
+   `finance bot` running from step 3), or run
    `uv run finance import wise-pdf ./statement.pdf --account "Wise EUR"`.
 6. **Review drafts**: open the web UI's Drafts view, or
    `uv run finance draft list` / `… draft confirm <id>`.

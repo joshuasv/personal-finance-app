@@ -39,4 +39,5 @@ src/finance/web/dist/
 wise_statement_example.pdf
 tests/fixtures/wise/*.pdf
 !tests/fixtures/wise/april_2026.pdf
+!tests/fixtures/wise/may_2026.pdf
 feedback.txt

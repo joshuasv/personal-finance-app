@@ -35,5 +35,9 @@ src/finance/web/dist/
 .env.local
 .telegram-test-secrets.toml
 
+# Real bank statement PDFs — NEVER commit, contain personal financial data
 wise_statement_example.pdf
+tests/fixtures/wise/*.pdf
+!tests/fixtures/wise/april_2026.pdf
+!tests/fixtures/wise/may_2026.pdf
 feedback.txt

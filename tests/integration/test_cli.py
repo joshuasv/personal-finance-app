@@ -10,6 +10,7 @@ from __future__ import annotations
 import shutil
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import pytest
 from typer.testing import CliRunner
@@ -293,6 +294,51 @@ def test_bot_refuses_with_empty_allow_list(runner: CliRunner, finance_home: Path
     result = runner.invoke(app, ["bot"])
     assert result.exit_code != 0
     assert "allow_list" in result.output
+
+
+def test_bot_configures_logging_before_polling(
+    runner: CliRunner, finance_home: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`finance bot` MUST call `configure_logging(settings)` before
+    `Application.run_polling(...)` so the operator's terminal isn't silent.
+
+    Mirrors `serve_cmd`'s pattern: the CLI command owns logging setup, not
+    the bot module.
+    """
+    runner.invoke(app, ["config", "set", "telegram.token", "fake-token"])
+    runner.invoke(app, ["config", "set", "telegram.allow_list", "12345"])
+
+    call_order: list[str] = []
+    from finance.bots.telegram import app as bot_app
+    from finance.core import logging as core_logging
+
+    real_configure_logging = core_logging.configure_logging
+
+    def tracking_configure_logging(*args: Any, **kwargs: Any) -> Any:
+        call_order.append("configure_logging")
+        return real_configure_logging(*args, **kwargs)
+
+    def tracking_build_application(*args: Any, **kwargs: Any) -> Any:
+        call_order.append("build_application")
+
+        # Return an object whose run_polling raises immediately so we don't
+        # actually hit api.telegram.org.
+        class _StubApp:
+            def run_polling(self_inner, **_: Any) -> None:
+                call_order.append("run_polling")
+                raise RuntimeError("stop here in test")
+
+        return _StubApp()
+
+    monkeypatch.setattr(core_logging, "configure_logging", tracking_configure_logging)
+    monkeypatch.setattr(bot_app, "build_application", tracking_build_application)
+
+    result = runner.invoke(app, ["bot"])
+    assert result.exit_code != 0  # the stub run_polling raises
+
+    assert call_order[:3] == ["configure_logging", "build_application", "run_polling"], (
+        f"expected configure_logging before build_application before run_polling; got {call_order}"
+    )
 
 
 def test_serve_refuses_without_api_key(runner: CliRunner, finance_home: Path) -> None:

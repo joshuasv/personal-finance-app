@@ -8,9 +8,11 @@ the very first PDF upload doesn't race-create it.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
+import telegram
 from sqlalchemy.orm import sessionmaker
 from telegram.ext import (
     Application,
@@ -36,10 +38,23 @@ from finance.bots.telegram.handlers import (
 from finance.bots.telegram.inbox import inbox_dir
 from finance.core.config import Settings
 from finance.core.db import engine_for, session_factory_for
-from finance.core.logging import configure_logging
 from finance.core.operations import OperationRegistry, build_default_registry
 
 logger = logging.getLogger(__name__)
+
+_conflict_seen: bool = False
+
+
+async def _on_error(update: object, context: Any) -> None:
+    """PTB error handler — shuts down on Conflict, logs ERROR for everything else."""
+    global _conflict_seen
+    if isinstance(context.error, telegram.error.Conflict):
+        if not _conflict_seen:
+            _conflict_seen = True
+            logger.critical("another bot instance is already running — shutting down")
+            asyncio.get_running_loop().create_task(context.application.stop())
+        return
+    logger.error("unhandled exception in bot", exc_info=context.error)
 
 
 def build_application(
@@ -52,11 +67,12 @@ def build_application(
 
     Raises `EmptyAllowListError` if `telegram.allow_list` is empty.
     """
+    global _conflict_seen
+    _conflict_seen = False
+
     if settings.telegram.token is None or settings.telegram.token == "":
         raise RuntimeError("telegram.token is not set; cannot build the bot Application")
 
-    # Ensure logging redaction is in place before any handler runs.
-    configure_logging(settings)
     allow_list = AllowList(settings.telegram.allow_list)
 
     # Pre-create the inbox so the first upload doesn't race the mkdir.
@@ -83,6 +99,7 @@ def build_application(
     application.add_handler(CommandHandler("drafts", drafts_command))
     application.add_handler(MessageHandler(filters.Document.ALL, document_handler))
     application.add_handler(CallbackQueryHandler(callback_handler))
+    application.add_error_handler(_on_error)
 
     logger.info("bot ready (allow-listed chats: %d)", len(settings.telegram.allow_list))
     return application

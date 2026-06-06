@@ -35,8 +35,38 @@ _MONTH_ALT = "|".join(_MONTHS)
 
 # A line ending with "<amount> <balance>" — both decimals, amount may be signed.
 _AMOUNT_BALANCE_RE = re.compile(r"\s(?P<amount>-?[\d,]+\.\d+)\s+(?P<balance>-?[\d,]+\.\d+)\s*$")
-# Date line, e.g. "April 30, 2026 Card ending in 8273 ..."
-_DATE_LINE_RE = re.compile(rf"^(?P<month>{_MONTH_ALT})\s+(?P<day>\d{{1,2}}),\s+(?P<year>\d{{4}})\b")
+# Date lines come in two locale orderings depending on which option was picked
+# in Wise's statement-export GUI; both must be accepted (see specs/001-...).
+#   US: "April 30, 2026 Card ending in 8273 ..."  (Month Day[,] Year; comma optional)
+#   EU: "31 May 2026 Card ending in 8273 ..."     (Day Month Year)
+# The day may be 1 or 2 digits (no leading zero required) in either ordering.
+_DATE_LINE_US_RE = re.compile(
+    rf"^(?P<month>{_MONTH_ALT})\s+(?P<day>\d{{1,2}}),?\s+(?P<year>\d{{4}})\b"
+)
+_DATE_LINE_EU_RE = re.compile(
+    rf"^(?P<day>\d{{1,2}})\s+(?P<month>{_MONTH_ALT})\s+(?P<year>\d{{4}})\b"
+)
+
+
+def _match_date(line: str) -> re.Match[str] | None:
+    """Return the date match for a line in either supported ordering, or None.
+
+    The two patterns are mutually exclusive — a US line starts with a month
+    word, an EU line starts with a digit — so the order they are tried in does
+    not affect the result.
+    """
+    return _DATE_LINE_US_RE.match(line) or _DATE_LINE_EU_RE.match(line)
+
+
+def _date_from_match(m: re.Match[str]) -> date:
+    """Build a calendar date from a date match of either ordering."""
+    return date(
+        year=int(m.group("year")),
+        month=_MONTHS[m.group("month")],
+        day=int(m.group("day")),
+    )
+
+
 # Currency declaration in the header: "EUR statement" / "GBP statement"
 _CURRENCY_HEADER_RE = re.compile(r"(?m)^([A-Z]{3})\s+statement\b")
 # Page footer: "ref:<uuid>  <n> / <total>"
@@ -115,9 +145,17 @@ class WiseStatementAdapter:
             if any(ln.startswith(p) for p in _TRAILER_PREFIXES):
                 break
             block.append((pno, ln))
-            if _DATE_LINE_RE.match(ln) and len(block) >= 2:
+            if _match_date(ln) and len(block) >= 2:
                 results.append(self._make_tx(block, currency))
                 block = []
+
+        if not results:
+            raise AdapterParseError(
+                self.id,
+                "recognised a Wise statement header but parsed 0 transactions; "
+                "the statement layout may be unsupported",
+                page=1,
+            )
         return results
 
     def _make_tx(self, block: list[tuple[int, str]], currency: str) -> ParsedTransaction:
@@ -133,18 +171,14 @@ class WiseStatementAdapter:
         amount_minor = _parse_minor(m_amt.group("amount"))
 
         last_pno, last = block[-1]
-        d = _DATE_LINE_RE.match(last)
+        d = _match_date(last)
         if d is None:
             raise AdapterParseError(
                 self.id,
                 f"transaction block does not end in a date line: {last!r}",
                 page=last_pno,
             )
-        posted = date(
-            year=int(d.group("year")),
-            month=_MONTHS[d.group("month")],
-            day=int(d.group("day")),
-        )
+        posted = _date_from_match(d)
 
         continuations = [ln for _, ln in block[1:-1]]
         payee = desc_head

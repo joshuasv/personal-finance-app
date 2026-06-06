@@ -550,10 +550,16 @@ def bot_cmd() -> None:
             code=2,
         )
 
-    from finance.bots.telegram.app import build_application
+    import sys
 
-    application = build_application(settings)
+    import finance.bots.telegram.app as _bot_app
+    from finance.core.logging import configure_logging
+
+    configure_logging(settings)
+    application = _bot_app.build_application(settings)
     application.run_polling(stop_signals=None)
+    if _bot_app._conflict_seen:
+        sys.exit(1)
 
 
 def main() -> None:

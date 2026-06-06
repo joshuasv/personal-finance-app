@@ -28,6 +28,7 @@ button {
   border-radius: 6px;
   border: 1px solid #888;
   background: #f5f5f5;
+  color: #1a1a1a;
   cursor: pointer;
 }
 
@@ -80,6 +81,7 @@ th, td {
 }
 .logout {
   background: transparent;
+  color: inherit;
 }
 .navtoggle {
   display: none;
@@ -98,10 +100,12 @@ th, td {
 .navbtn {
   background: transparent;
   border: 1px solid transparent;
+  color: inherit;
 }
 .navbtn.active {
   background: #ddd;
   border-color: #888;
+  color: #1a1a1a;
 }
 
 .content {

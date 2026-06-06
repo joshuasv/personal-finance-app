@@ -50,6 +50,17 @@ run() {
 
 run api uv run finance serve
 run web npm --prefix src/finance/web run dev
+
+# Kill any stale finance bot process to prevent a 409 Conflict on startup.
+if command -v pgrep &>/dev/null; then
+  stale=$(pgrep -f "finance bot" 2>/dev/null | grep -v "^$$" || true)
+  if [[ -n "$stale" ]]; then
+    echo "[dev] killing stale bot process $stale"
+    kill "$stale" 2>/dev/null || echo "[dev] warning: could not kill stale bot process $stale"
+    sleep 0.5
+  fi
+fi
+
 if [[ "$RUN_BOT" == "1" ]]; then
   run bot uv run finance bot
 fi

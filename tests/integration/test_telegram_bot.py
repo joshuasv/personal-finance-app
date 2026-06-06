@@ -360,6 +360,53 @@ async def test_token_redacted_in_handler_logs(
     assert TOKEN not in caplog.text
 
 
+# --- Error handler -----------------------------------------------------------
+
+
+async def test_on_error_conflict_shuts_down_and_logs_critical(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """A Conflict (HTTP 409) must trigger shutdown and emit a CRITICAL log."""
+    import asyncio
+
+    import telegram
+
+    import finance.bots.telegram.app as bot_app
+    from finance.bots.telegram.app import _on_error
+
+    bot_app._conflict_seen = False
+    context = MagicMock()
+    context.error = telegram.error.Conflict("terminated by other getUpdates request")
+    context.application.stop = AsyncMock()
+
+    with caplog.at_level(logging.CRITICAL, logger="finance.bots.telegram.app"):
+        await _on_error(None, context)
+        await asyncio.sleep(0)
+
+    context.application.stop.assert_called_once()
+    assert any("another bot instance" in r.getMessage() for r in caplog.records)
+    assert any(r.levelno == logging.CRITICAL for r in caplog.records)
+
+
+async def test_on_error_non_conflict_continues_and_logs_error(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Non-Conflict errors must log at ERROR and NOT trigger shutdown."""
+    import finance.bots.telegram.app as bot_app
+    from finance.bots.telegram.app import _on_error
+
+    bot_app._conflict_seen = False
+    context = MagicMock()
+    context.error = RuntimeError("boom")
+    context.application.stop = AsyncMock()
+
+    with caplog.at_level(logging.ERROR, logger="finance.bots.telegram.app"):
+        await _on_error(None, context)
+
+    context.application.stop.assert_not_called()
+    assert any(r.levelno == logging.ERROR for r in caplog.records)
+
+
 # --- Helpers ---------------------------------------------------------------
 
 

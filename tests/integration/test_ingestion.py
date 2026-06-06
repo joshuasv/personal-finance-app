@@ -42,6 +42,8 @@ pytestmark = pytest.mark.integration
 
 
 FIXTURE_PDF = Path(__file__).parent.parent / "fixtures" / "wise" / "april_2026.pdf"
+# European-ordering statement ("31 May 2026"); the original "0 drafts" report.
+MAY_FIXTURE_PDF = Path(__file__).parent.parent / "fixtures" / "wise" / "may_2026.pdf"
 
 
 @pytest.fixture
@@ -49,6 +51,14 @@ def fixture_pdf(tmp_path: Path) -> Path:
     """Copy the bundled Wise PDF into a tmp dir so tests don't share inode state."""
     dst = tmp_path / "april_2026.pdf"
     shutil.copy2(FIXTURE_PDF, dst)
+    return dst
+
+
+@pytest.fixture
+def may_fixture_pdf(tmp_path: Path) -> Path:
+    """Copy the European-ordering Wise PDF into a tmp dir (no shared inode state)."""
+    dst = tmp_path / "may_2026.pdf"
+    shutil.copy2(MAY_FIXTURE_PDF, dst)
     return dst
 
 
@@ -101,6 +111,32 @@ def test_import_artifact_creates_batch_and_drafts(
     assert len(drafts) == result.draft_count
     assert all(d.status is DraftStatus.pending for d in drafts)
     assert all(d.currency == "EUR" for d in drafts)
+
+
+def test_import_eu_ordering_statement_yields_drafts(
+    db_session: Session, adapter_registry: AdapterRegistry, may_fixture_pdf: Path
+) -> None:
+    """Regression for the reported bug: a statement exported with the European
+    date locale ("31 May 2026") previously produced 0 drafts. It must now import
+    its transactions like any US-ordering statement does."""
+    account = _make_eur_account(db_session)
+    result = import_artifact(
+        db_session,
+        adapter_id="wise-pdf",
+        path=may_fixture_pdf,
+        account_id=account.id,
+        registry=adapter_registry,
+    )
+
+    assert result.draft_count > 0, "EU-ordering statement must not import 0 drafts"
+    drafts = (
+        db_session.query(DraftTransaction)
+        .filter(DraftTransaction.batch_id == result.batch_id)
+        .all()
+    )
+    assert len(drafts) == result.draft_count
+    assert all(d.currency == "EUR" for d in drafts)
+    assert all(d.posted_date.year == 2026 and d.posted_date.month == 5 for d in drafts)
 
 
 def test_drafts_do_not_affect_balance(

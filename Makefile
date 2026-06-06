@@ -1,4 +1,4 @@
-.PHONY: help sync hooks fmt lint typecheck test test-cov run-api run-bot run-web build-web clean
+.PHONY: help sync hooks fmt lint typecheck test test-cov run-api run-bot run-web run-all build-web clean
 
 PY := uv run
 
@@ -14,6 +14,7 @@ help:
 	@echo "  run-api    Start FastAPI (REST + MCP) via finance serve"
 	@echo "  run-bot    Start the Telegram bot"
 	@echo "  run-web    Start the Vite dev server"
+	@echo "  run-all    Start API + web (dev) + bot in one terminal"
 	@echo "  build-web  Build the web UI for production"
 
 sync:
@@ -47,6 +48,9 @@ run-bot:
 
 run-web:
 	npm --prefix src/finance/web run dev
+
+run-all:
+	./scripts/dev.sh
 
 build-web:
 	npm --prefix src/finance/web run build

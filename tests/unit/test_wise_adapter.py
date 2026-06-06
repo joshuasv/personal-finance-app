@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -11,7 +12,15 @@ from finance.ingestion.protocols import (
     ParsedTransaction,
 )
 
-FIXTURE = Path(__file__).parent.parent / "fixtures" / "wise" / "april_2026.pdf"
+FIXTURES = Path(__file__).parent.parent / "fixtures" / "wise"
+# US ordering ("April 30, 2026") vs European ordering ("31 May 2026"). Both are
+# real Wise exports; the locale is chosen in Wise's statement-export GUI, so the
+# adapter must handle either interchangeably.
+APRIL = FIXTURES / "april_2026.pdf"  # Month Day, Year
+MAY = FIXTURES / "may_2026.pdf"  # Day Month Year
+
+# The April fixture is kept as the named default for legacy assertions below.
+FIXTURE = APRIL
 
 
 def test_adapter_satisfies_protocol() -> None:
@@ -22,19 +31,59 @@ def test_adapter_satisfies_protocol() -> None:
     assert adapter.source_artifact_type == "application/pdf"
 
 
-def test_parse_clean_fixture_yields_transactions() -> None:
+@pytest.mark.parametrize(
+    ("fixture", "year", "month"),
+    [
+        pytest.param(APRIL, 2026, 4, id="us-ordering-april"),
+        pytest.param(MAY, 2026, 5, id="eu-ordering-may"),
+    ],
+)
+def test_parse_clean_fixture_yields_transactions(fixture: Path, year: int, month: int) -> None:
+    # GIVEN a real Wise statement in either date ordering
+    # WHEN it is parsed
     adapter = WiseStatementAdapter()
-    parsed = list(adapter.parse(FIXTURE))
-    # Sanity: > 20 lines, all in EUR, all with valid dates and non-zero amounts.
+    parsed = list(adapter.parse(fixture))
+    # THEN every line item is captured with a valid date in the statement month,
+    # the right currency, a non-zero amount, and a non-empty payee.
     assert len(parsed) > 20
     for tx in parsed:
         assert isinstance(tx, ParsedTransaction)
         assert tx.currency == "EUR"
         assert tx.amount_minor != 0
         assert tx.payee.strip()
-        # Dates must be in the statement month (April 2026).
-        assert tx.posted_date.year == 2026
-        assert tx.posted_date.month == 4
+        assert tx.posted_date.year == year
+        assert tx.posted_date.month == month
+
+
+def test_parse_eu_ordering_spot_check() -> None:
+    # GIVEN the European-ordering ("Day Month Year") statement
+    # WHEN it is parsed
+    adapter = WiseStatementAdapter()
+    parsed = list(adapter.parse(MAY))
+    # THEN a known line — the Claude.ai subscription dated "31 May 2026" — maps
+    # to the correct date, signed minor amount, currency, and payee.
+    claude = next(
+        t
+        for t in parsed
+        if "Claude.ai" in t.payee and t.amount_minor == -2142 and t.posted_date.day == 31
+    )
+    assert claude.currency == "EUR"
+    assert claude.posted_date == date(2026, 5, 31)
+
+
+def test_parse_eu_single_digit_day() -> None:
+    # GIVEN the European-ordering statement, which contains single-digit days
+    # (e.g. "1 May 2026", "5 May 2026") with no leading zero
+    # WHEN it is parsed
+    adapter = WiseStatementAdapter()
+    parsed = list(adapter.parse(MAY))
+    # THEN those dates resolve to the correct single-digit day.
+    single_digit = [t for t in parsed if t.posted_date.day < 10]
+    assert single_digit, "May fixture has single-digit-day transactions"
+    assert any(t.posted_date.day == 1 for t in single_digit)
+    for tx in single_digit:
+        assert tx.posted_date.month == 5
+        assert 1 <= tx.posted_date.day <= 9
 
 
 def test_parse_handles_inflows_and_outflows() -> None:
@@ -67,8 +116,58 @@ def test_parse_signs_minor_units_correctly() -> None:
     del by_payee  # only used for type-flow analysis above
 
 
+def test_parse_recognised_statement_with_no_transactions_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # GIVEN a document that looks like a Wise statement (valid currency header
+    # and column header) but carries no parseable transaction lines
+    body = (
+        "Wise Europe SA\n"
+        "EUR statement\n"
+        "1 May 2026 [GMT+02:00] - 31 May 2026 [GMT+02:00]\n"
+        "Generated on: 6 June 2026\n"
+        "Description Incoming Outgoing Amount\n"
+        "Wise is the trading name of TransferWise\n"
+    )
+    # Patch the PDF text-extraction boundary so we drive the parser with known
+    # page text without needing a PDF writer dependency.
+    _patch_pdf_text(monkeypatch, [body])
+    pdf_path = tmp_path / "empty_statement.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4 stub")  # only its path is used; open() is patched
+    adapter = WiseStatementAdapter()
+    # WHEN it is parsed
+    # THEN the adapter fails loudly instead of returning an empty result.
+    with pytest.raises(AdapterParseError) as exc_info:
+        list(adapter.parse(pdf_path))
+    assert "wise-pdf" in str(exc_info.value)
+
+
 def test_parse_missing_file_raises_adapter_parse_error(tmp_path: Path) -> None:
     adapter = WiseStatementAdapter()
     with pytest.raises(AdapterParseError) as exc_info:
         list(adapter.parse(tmp_path / "does-not-exist.pdf"))
     assert "wise-pdf" in str(exc_info.value)
+
+
+def _patch_pdf_text(monkeypatch: pytest.MonkeyPatch, page_texts: list[str]) -> None:
+    """Patch `pdfplumber.open` in the adapter to yield fixed per-page text."""
+    from finance.ingestion import wise_pdf
+
+    class _FakePage:
+        def __init__(self, text: str) -> None:
+            self._text = text
+
+        def extract_text(self) -> str:
+            return self._text
+
+    class _FakePdf:
+        def __init__(self, texts: list[str]) -> None:
+            self.pages = [_FakePage(t) for t in texts]
+
+        def __enter__(self) -> _FakePdf:
+            return self
+
+        def __exit__(self, *exc: object) -> None:
+            return None
+
+    monkeypatch.setattr(wise_pdf.pdfplumber, "open", lambda _path: _FakePdf(page_texts))
